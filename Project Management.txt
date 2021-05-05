@@ -1,0 +1,1426 @@
+
+--//--1712866 - Nguyễn Bá Tuân
+
+--------1. Truy vấn Quản lý đề tài-----------
+
+go
+use QLGVTGDT
+
+--//--Q1. Cho biết họ tên và mức lương của các giáo viên nữ:
+select gv.hoten, gv.luong
+from GIAOVIEN gv
+where gv.phai = N'Nữ'
+
+--//--Q2. Họ tên của giáo viên và lương của họ sau khi tăng 10%:
+select gv.hoten, gv.luong*1.1 as N'Lương sau khi tăng 10%'
+from GIAOVIEN gv
+
+--//--Q3. Cho biết mã của các giáo viên có họ tên bắt đầu là 'Nguyễn' & lương > $2000
+--hoặc giáo viên là trưởng bộ môn nhận chức sau 1995.
+select gv.hoten
+from GIAOVIEN gv
+where gv.hoten like N'%Nguyễn%' and gv.luong > 2000
+union
+select gv.hoten
+from GIAOVIEN gv, BOMON bm
+where bm.truongbm = gv.magv and bm.ngaynhanchuc > 1995
+
+--//--Q4. Cho biết tên giáo viên Khoa Công nghệ thông tin
+select gv.hoten
+from GIAOVIEN gv, BOMON bm, KHOA k
+where gv.mabm = bm.mabm and bm.makhoa = k.makhoa
+and k.tenkhoa = N'Công nghệ thông tin'
+
+--//--Q5. Cho biết thông tin của bộ môn cùng với thông tin
+--của giảng viên làm trưởng bộ môn đó.
+select bm.mabm, bm.tenbm, gv.hoten as N'Trưởng Bộ Môn'
+from GIAOVIEN gv, BOMON bm
+where bm.truongbm = gv.magv
+
+--//--Q6. Với mỗi giáo viên, cho biết thông tin của bộ môn mà họ đang làm việc:
+select gv.magv, gv.hoten, gv.mabm, bm.tenbm
+from GIAOVIEN gv, BOMON bm
+where gv.mabm = bm.mabm
+
+--//--Q7. Cho biết tên đề tài và giáo viên chủ nhiệm đề tài:
+select dt.tendt, gv.hoten as N'GV chủ nhiệm đề tài'
+from GIAOVIEN gv, DETAI dt
+where dt.gvcndt = gv.magv
+
+--//--Q8. Với mỗi khoa cho biết thông tin của trưởng Khoa:
+select k.makhoa, k.tenkhoa, trgkhoa.hoten as N'Trưởng Khoa'
+from GIAOVIEN trgkhoa, KHOA k
+where k.truongkhoa = trgkhoa.magv
+
+--//--Q9. Cho biết các giáo viên của bộ môn 'Vi sinh' có tham gia đề tài 006:
+select distinct tg.magv, gv.hoten
+from THAMGIADT tg, GIAOVIEN gv, BOMON bm
+where tg.magv = gv.magv and gv.mabm = bm.mabm
+and bm.tenbm = N'Vi Sinh'
+
+--//--Q10. Với những đề tài thuộc cấp quản lý 'Nhà nước', cho biết mã đề tài,
+--đề tài thuộc chủ đề nào, họ tên người chủ nhiệm đề tài cùng với ngày sinh 
+--và địa chỉ người đó:
+select dt.madt, cd.tencd, gv.hoten as N'Chủ nhiệm đề tài', gv.ngaysinh, gv.diachi
+from DETAI dt, CHUDE cd, GIAOVIEN gv 
+where dt.capql = N'Nhà nước' and dt.macd = cd.macd and dt.gvcndt = gv.magv
+
+--//--Q11. Tìm họ tên của từng giáo viên và người phụ trách chuyên môn của họ:
+select gv.hoten, gvql.hoten as 'Người phụ trách chuyên môn trực tiếp' 
+from GIAOVIEN gv, GIAOVIEN gvql
+where gv.gvqlcm = gvql.magv
+
+--//--Q12. Tìm họ tên của những giáo viên được 'Trần Trà Hương' phụ trách trực tiếp:
+select gv.hoten
+from GIAOVIEN gv, GIAOVIEN gvql
+where gv.gvqlcm = gvql.magv and gvql.hoten = N'Trần Trà Hương'
+
+--//--Q13. Cho biết tên giáo viên là trưởng bộ môn Hệ Thống Thông Tin:
+select gv.hoten
+from GIAOVIEN gv, BOMON bm 
+where bm.truongbm = gv.magv and bm.tenbm = N'Hệ Thống Thông Tin'
+
+--//--Q14. Cho biết tên người chủ nhiệm đề tài của những đề tài thuộc chủ đề
+--'Quản lý giáo dục':
+select distinct gv.hoten
+from GIAOVIEN gv, DETAI dt, CHUDE cd
+where dt.gvcndt = gv.magv and dt.macd = cd.macd and cd.tencd = N'Quản lý giáo dục'
+
+--//--Q15. Cho biết tên các công việc của đề tài 'HTTT quản lý các trường ĐH'
+--có thời gian bắt đầu trong tháng 3/2008: 
+select cv.tencv
+from CONGVIEC cv, DETAI dt
+where cv.madt = dt.madt and dt.tendt = N'HTTT quản lý các trường ĐH'
+and cv.ngaybd between '2008-03-01' and '2008-03-31'
+
+--//--Q16. Tìm họ tên của từng giáo viên tên GVQLCM:
+select gv.hoten, gvql.hoten as 'Người phụ trách chuyên môn' 
+from GIAOVIEN gv, GIAOVIEN gvql
+where gv.gvqlcm = gvql.magv
+
+--//--Q17. Cho biết các công việc bắt đầu trong khoảng từ 01/01/2007 -> 01/08/2007:
+select cv.tencv
+from CONGVIEC cv
+where cv.ngaybd between '2007-01-01' and '2007-08-01'
+
+--//--Q18. Cho biết họ tên các giáo viên cùng bộ môn với giáo viên 'Trần Trà Hương':
+select gv.magv, gv.hoten
+from GIAOVIEN gv
+where gv.hoten != N'Trần Trà Hương'
+and gv.mabm in (select gv2.mabm from GIAOVIEN gv2 where gv2.hoten = N'Trần Trà Hương')
+
+--//--Q19. Tìm những giáo viên vừa là trưởng bộ môn vừa chủ nhiệm đề tài:
+select gv.hoten
+from GIAOVIEN gv, BOMON bm
+where bm.truongbm = gv.magv
+intersect
+select gv.hoten
+from GIAOVIEN gv, DETAI dt
+where dt.gvcndt = gv.magv
+
+--//--Q20. Cho biết tên những giáo viên vừa là trưởng khoa vừa là trưởng bộ môn:
+select gv.hoten
+from GIAOVIEN gv, KHOA k
+where k.truongkhoa = gv.magv
+intersect
+select gv.hoten
+from GIAOVIEN gv, BOMON bm
+where bm.truongbm = gv.magv
+
+--//--Q21. Cho biết tên những trưởng bộ môn mà vừa chủ nhiệm đề tài:
+select gv.hoten
+from BOMON bm, GIAOVIEN gv
+where bm.truongbm = gv.magv 
+and bm.truongbm in (select gvcndt from DETAI)
+
+--//--Q22. Cho biết mã số các trưởng khoa có chủ nhiệm đề tài:
+select truongkhoa
+from KHOA
+where truongkhoa in (select gvcndt from DETAI)
+
+--//--Q23. Cho biết mã số các giáo viên thuộc bộ môn HTTT hoặc
+--có tham gia đề tài mã 001:
+select gv.magv
+from GIAOVIEN gv
+where gv.mabm = 'HTTT'
+union
+select gv.magv
+from GIAOVIEN gv, THAMGIADT tg
+where gv.magv = tg.magv and tg.madt = '001'
+
+--//--Q24. Cho biết giáo viên làm việc cùng bộ môn với giáo viên 002:
+select magv
+from GIAOVIEN
+where magv != '002' and mabm = (select mabm from GIAOVIEN where magv = '002')
+
+--//--Q25. Tìm những giáo viên là trưởng bộ môn:
+select gv.magv, gv.hoten
+from GIAOVIEN gv, BOMON bm
+where bm.truongbm = gv.magv
+
+--//--Q26. Cho biết họ tên và mức lương của các giáo viên:
+select gv.hoten, gv.luong
+from GIAOVIEN gv
+
+--//--Q27. Cho biết số lượng giáo viên và tổng lương của họ:
+select count(*) as N'Số lượng gv', sum(gv.luong) as N'Tổng lương'
+from GIAOVIEN gv
+
+--//--Q28. Cho biết số lượng giáo viên và lương trung bình của từng bộ môn:
+select gv.mabm, bm.tenbm, count(gv.magv) as N'SLGV', avg(gv.luong) as N'LƯƠNG TB'
+from GIAOVIEN gv, BOMON bm
+where gv.mabm = bm.mabm
+group by gv.mabm, bm.tenbm
+
+--//--Q29. Cho biết tên chủ đề và số lượng đề tài thuộc chủ đề đó:
+select dt.macd, cd.tencd, count(dt.madt) as N'SLĐT'
+from DETAI dt, CHUDE cd
+where dt.macd = cd.macd
+group by dt.macd, cd.tencd
+
+--//--Q30. Cho biết tên giáo viên và số lượng đề tài mà giáo viên đó tham gia:
+select gv.hoten, count(tg.madt) as 'SLDT THAM GIA'
+from GIAOVIEN gv, THAMGIADT tg
+where gv.magv = tg.magv
+group by gv.hoten
+
+--//--Q31. Cho biết tên giáo viên và số lượng đề tài mà giáo viên đó làm chủ nhiệm:
+select gv.hoten, count(dt.madt) as N'SLĐT CHỦ NHIỆM'
+from GIAOVIEN gv, DETAI dt
+where dt.gvcndt = gv.magv
+group by gv.hoten
+
+--//--Q32. Với mỗi giáo viên cho biết tên giáo viên và số người thân của giáo viên đó:
+select gv.hoten, count(rel.magv) as N'SL NGƯỜI THÂN'
+from GIAOVIEN gv, NGUOITHAN rel
+where rel.magv = gv.magv
+group by gv.hoten
+
+--//--Q33. Cho biết tên những giáo viên tham gia từ 3 đề tài trở lên:
+select gv.hoten, count(tg.madt) as N'SL đề tài tham gia'
+from GIAOVIEN gv, THAMGIADT tg
+where tg.magv = gv.magv
+group by gv.hoten
+having count(tg.madt) > 3
+
+--//--Q34. Cho biết số lượng giáo viên đã tham gia đề tài 'Ứng dụng hóa học xanh':
+select count(gv.magv) as N'SLGV THAM GIA'
+from GIAOVIEN gv, THAMGIADT tg, DETAI dt
+where tg.magv = gv.magv and tg.madt = dt.madt and dt.tendt = N'Ứng dụng hóa học xanh'
+
+--//--Q35. Cho biết mức lương cao nhất của các giáo viên:
+select max(luong) as N'MAX LƯƠNG'
+from GIAOVIEN
+
+--//--Q36. Cho biết những giáo viên có lương cao nhất:
+select gv.magv, gv.hoten, gv.luong
+from GIAOVIEN gv
+where gv.luong = (select max(luong) from GIAOVIEN)
+
+--//--Q37. Cho biết lương cao nhất trong bộ môn HTTT:
+select gv.magv, gv.hoten, gv.luong
+from GIAOVIEN gv
+where gv.mabm = 'HTTT' and 
+not exists (select * from GIAOVIEN gv2 where gv2.mabm = gv.mabm
+and gv2.luong > gv.luong)
+
+--//--Q38. Cho biết tên giáo viên lớn tuổi nhất bộ môn Hệ Thống Thông Tin:
+select gv.magv, gv.hoten, DATEDIFF(hour, gv.ngaysinh, GETDATE()) / 8766 + 1 as 'AGE'
+from GIAOVIEN gv
+where gv.mabm = 'HTTT' and 
+not exists (select * from GIAOVIEN gv2 where gv2.mabm = gv.mabm
+and year(gv2.ngaysinh) < year(gv.ngaysinh))
+
+--//--Q39. Cho biết giáo viên nhỏ tuổi nhất khoa Công nghệ thông tin:
+select gv.magv, gv.hoten, datediff(year, gv.ngaysinh, getdate()) as N'TUỔI'
+from GIAOVIEN gv
+where datediff(year, gv.ngaysinh, getdate())
+<= all(select datediff(year, gv2.ngaysinh, getdate()) from GIAOVIEN gv2)
+
+--//--Q40. Cho biết tên giáo viên và tên khoa của giáo viên có lương cao nhất:
+select gv.magv, gv.hoten, k.tenkhoa, gv.luong as N'MAX LƯƠNG'
+from GIAOVIEN gv, BOMON bm, KHOA k
+where gv.mabm = bm.mabm and bm.makhoa = k.makhoa
+and gv.luong = (select max(gv2.luong) from GIAOVIEN gv2)
+
+--10:40 21.05 2020
+
+--//--Q41. Cho biết những giáo viên có lương lớn nhất trong BOMON của họ
+
+select gv.mabm, gv.hoten, gv.luong as N'Lương cao nhất'
+from GIAOVIEN gv
+where not exists (select * from GIAOVIEN gv2
+where gv2.mabm = gv.mabm and gv2.luong > gv.luong)
+
+--Test:
+select gv.mabm, max(gv.luong)
+from GIAOVIEN gv
+group by gv.mabm
+
+--//--Q42. Cho biết tên những đề tài mà giáo viên Nguyễn Hoài An chưa tham gia
+
+select distinct tendt
+from DETAI
+where madt not in 
+(select tg.madt from GIAOVIEN gv, THAMGIADT tg 
+where gv.hoten = N'Nguyễn Hoài An' and gv.magv = tg.magv)
+
+--//--Q43. Cho biết tên những đề tài mà giáo viên Nguyễn Hoài An chưa tham gia
+--cùng với tên giáo viên chủ nhiệm đề tài đó.
+
+select distinct dt.tendt, gvcndt.magv as N'Chủ nhiệm đề tài'
+from DETAI dt, GIAOVIEN gvcndt
+where dt.gvcndt = gvcndt.magv 
+and dt.madt not in 
+(select tg.madt from GIAOVIEN gv, THAMGIADT tg 
+where gv.hoten = N'Nguyễn Hoài An' and gv.magv = tg.magv)
+
+--//--Q44. Cho biết tên những giáo viên khoa CNTT chưa tham gia đề tài nào
+select gv.hoten
+from GIAOVIEN gv, BOMON bm
+where bm.makhoa = 'CNTT' and gv.mabm = bm.mabm
+and not exists (select * from THAMGIADT tg where tg.magv = gv.magv)
+
+--//--Q45. Cho biết tên những giáo viên chưa tham gia đề tài nào:
+select gv.hoten
+from GIAOVIEN gv
+where not exists (select * from THAMGIADT tg where tg.magv = gv.magv)
+
+--//--Q46. Cho biết gv có lương > lương giáo viên Nguyễn Hoài An:
+select gv.hoten, gv.luong
+from GIAOVIEN gv, GIAOVIEN gv2
+where gv2.hoten = N'Nguyễn Hoài An' and gv2.luong < gv.luong
+
+--//--Q47. Tìm những truongbm có tham gia >= 1 detai
+select trbm.magv, trbm.hoten
+from GIAOVIEN trbm, BOMON bm
+where bm.truongbm = trbm.magv and
+exists (select * from THAMGIADT tg where tg.magv = trbm.magv)
+
+--//--Q48. Tìm giáo viên trùng tên & cùng giới tính với gv khác trong cùng bộ môn
+select gv.hoten
+from GIAOVIEN gv, GIAOVIEN gv2
+where gv2.magv != gv.magv and gv2.mabm = gv.mabm
+and gv2.phai = gv.phai and gv2.hoten = gv.hoten
+
+--//--Q49. Tìm những gv có lương >= 1 giáo viên thuộc bộ môn HTTT
+select gv.magv, gv.hoten
+from GIAOVIEN gv
+where exists (select * from GIAOVIEN gv2 where gv2.mabm = 'HTTT'
+and gv2.luong < gv.luong)
+
+--//--Q50. Tìm những gv có lương > all giáo viên thuộc bộ môn HTTT
+select gv.magv, gv.hoten, gv.luong as N'Lương cao nhất'
+from GIAOVIEN gv
+where gv.mabm = 'HTTT' and gv.luong >= all (select luong from GIAOVIEN where mabm = 'HTTT')
+
+--//--Q51. Tên khoa có đông giáo viên nhất
+select k.tenkhoa, count(gv.magv) as 'SLGV'
+from GIAOVIEN gv, BOMON bm, KHOA k
+where gv.mabm = bm.mabm and bm.makhoa = k.makhoa
+group by k.tenkhoa
+having count(gv.magv) >= all(select count(*) 
+from GIAOVIEN gv2, BOMON bm2, KHOA k2
+where gv2.mabm = bm2.mabm and bm2.makhoa = k2.makhoa
+group by k2.tenkhoa)
+
+--//--Q52. Họ tên giáo viên chủ nhiệm nhiều detai nhất
+select gv.hoten, count(dt.madt) as N'Số lượng đề tài chủ nhiệm'
+from GIAOVIEN gv, DETAI dt
+where dt.gvcndt = gv.magv
+group by gv.hoten
+having count(dt.madt) >= all(select count(dt2.madt)
+from GIAOVIEN gv2, DETAI dt2
+where dt2.gvcndt = gv2.magv
+group by gv2.hoten)
+
+--//--Q53. Cho biết mã bộ môn có nhiều giáo viên nhất
+
+select gv.mabm, count(gv.magv)
+from GIAOVIEN gv
+group by gv.mabm
+having count(gv.magv) >= all(select count(*) from GIAOVIEN group by mabm)
+
+--Số lượng giáo viên từng bộ môn:
+select mabm, count(*) as 'SLGV'
+from GIAOVIEN
+group by mabm
+
+--//--Q54. Cho biết tên giáo viên và tên bộ môn của giáo viên tham gia nhiều đề tài nhất
+
+select gv.hoten, bm.tenbm, count(distinct tg.madt) as N'SỐ LƯỢNG ĐỀ TÀI THAM GIA'
+from GIAOVIEN gv, THAMGIADT tg, BOMON bm
+where tg.magv = gv.magv and gv.mabm = bm.mabm
+group by gv.hoten, bm.tenbm
+having count(tg.madt) >= all(select count(tg2.madt) 
+from GIAOVIEN gv2, THAMGIADT tg2
+where tg2.magv = gv2.magv
+group by gv2.hoten)
+
+--//--Q55. Cho biết tên giáo viên tham gia nhiều đề tài nhất của bộ môn HTTT
+
+select gv.hoten, count(tg.madt) as N'SỐ LƯỢNG ĐỀ TÀI THAM GIA'
+from GIAOVIEN gv, THAMGIADT tg
+where tg.magv = gv.magv and gv.mabm = 'HTTT'
+group by gv.hoten
+having count(tg.madt) >= all(select count(tg2.madt) 
+from GIAOVIEN gv2, THAMGIADT tg2
+where tg2.magv = gv2.magv and gv2.mabm = 'HTTT'
+group by gv2.hoten)
+
+--//--Q56. Cho biết tên giáo viên & tên bộ môn của giáo viên có nhiều người thân nhất:
+
+select gv.hoten, bm.tenbm, count(rel.magv) as N'Số lượng người thân'
+from GIAOVIEN gv, BOMON bm, NGUOITHAN rel
+where gv.mabm = bm.mabm and rel.magv = gv.magv
+group by gv.hoten, bm.tenbm
+having count(rel.magv) >= all(select count(rel2.magv)
+from GIAOVIEN gv2, NGUOITHAN rel2
+where rel2.magv = gv2.magv
+group by gv2.hoten)
+
+--//--Q57. Cho biết tên truongbm mà chủ nhiệm nhiều detai nhất.
+
+select trgbm.hoten, count(dt.madt) as N'Số lượng đề tài chủ nhiệm'
+from GIAOVIEN trgbm, BOMON bm, DETAI dt
+where bm.truongbm = trgbm.magv and dt.gvcndt = trgbm.magv
+group by trgbm.hoten
+having count(dt.madt) >= all (select count(dt2.madt) 
+from GIAOVIEN trgbm2, BOMON bm2, DETAI dt2
+where bm2.truongbm = trgbm2.magv and dt2.gvcndt = trgbm2.magv
+group by trgbm2.hoten)
+
+--select gv.magv, gv.hoten
+--from GIAOVIEN gv, BOMON bm 
+--where bm.truongbm = gv.magv and bm.mabm = 'HTTT'
+
+--//--Q58. Cho biết tên gv tham gia tất cả đề tài
+select distinct gv.hoten
+from GIAOVIEN gv, THAMGIADT tg
+where gv.magv = tg.magv
+and not exists 
+((select dt.madt from DETAI dt)
+except
+(select tg2.madt from THAMGIADT tg2
+where tg2.magv = tg.magv))
+
+select distinct tg.magv
+from THAMGIADT tg
+where not exists
+(select * from DETAI dt
+where not exists (select * from THAMGIADT tg2
+where tg2.madt = dt.madt and tg2.magv = tg.magv))
+
+-------Ten giao vien tham gia tat ca de tai
+--//--Q59. Tên đề tài được tất cả gv HTTT tham gia
+select distinct dt.madt, dt.tendt
+from THAMGIADT tg, DETAI dt
+where tg.madt = dt.madt
+and not exists ((select magv from GIAOVIEN where mabm = 'HTTT')
+except (select magv from THAMGIADT tg2 where tg2.madt = tg.madt))
+--tg2.magv = tg.magv))
+
+select distinct dt.madt, dt.tendt
+from THAMGIADT tg, DETAI dt
+where tg.madt = dt.madt
+and not exists (select * from GIAOVIEN gv where mabm = 'HTTT'
+and not exists (select * from THAMGIADT tg2 
+where tg2.magv = gv.magv and tg2.madt = tg.madt))
+
+--//--Q60. Cho biết tendt được all gv của bm httt tg
+select distinct dt.madt, dt.tendt
+from THAMGIADT tg, DETAI dt
+where tg.madt = dt.madt
+and not exists (select * from GIAOVIEN gv where mabm = 'HTTT'
+and not exists (select * from THAMGIADT tg2 
+where tg2.magv = gv.magv and tg2.madt = tg.madt))
+
+--//--Q61. Cho biet gv tham gia tat ca cac de tai co ma chu de la QLGD
+select distinct tg.magv, gv.hoten
+from THAMGIADT tg, GIAOVIEN gv
+where tg.magv = gv.magv
+and not exists (select * from DETAI dt where
+madt in (select madt from CHUDE where macd = 'QLGD')
+and not exists (select * from THAMGIADT tg2
+where tg2.magv = tg.magv and tg2.madt = dt.madt))
+
+--//--Q62. GIAOVIEN tham gia tat ca cac detai ma gv Tran Tra Huong da thamgia
+
+select distinct tg.magv, gv.hoten from THAMGIADT tg, GIAOVIEN gv
+where tg.magv = gv.magv and gv.hoten not like N'Trần Trà Hương'
+and not exists (select * from DETAI dt 
+where dt.madt in (select distinct tg2.madt from THAMGIADT tg2, GIAOVIEN gv2
+where tg2.magv = gv2.magv and gv2.hoten = N'Trần Trà Hương')
+and not exists (select * from THAMGIADT tg3
+where tg3.magv = tg.magv and tg3.madt = dt.madt))
+
+--//--Q63. cho biet tendt ma tat ca gv thuoc bomon Hoa Huu Co thamgia
+
+select distinct tg.madt from THAMGIADT tg
+where exists ((select gv.magv from GIAOVIEN gv, BOMON bm
+where gv.mabm = bm.mabm and bm.tenbm = N'Hóa hữu cơ')
+except 
+(select distinct tg2.magv from THAMGIADT tg2
+where tg2.madt = tg.madt))
+
+--//--Q64. GV tham gia tatca congviec thuoc de tai 006
+
+select distinct tg.magv from THAMGIADT tg
+where not exists (select * from CONGVIEC cv
+where cv.madt = '006' 
+and not exists (select * from THAMGIADT tg2
+where tg2.magv = tg.magv and tg2.madt = cv.madt and tg2.stt = cv.sott))
+
+select tg.magv, gv.hoten from THAMGIADT tg, GIAOVIEN gv, CONGVIEC cv
+where tg.magv = gv.magv and tg.stt = cv.sott 
+and cv.madt = '006' and cv.madt = tg.madt 
+group by tg.magv, gv.hoten
+having count(cv.madt) = (select count(madt) from CONGVIEC
+where madt = '006')
+
+--//--Q65. GV tham gia all detai cua chu de ung dung cong nghe
+select * from CHUDE
+
+select distinct tg.magv, gv.hoten from THAMGIADT tg, GIAOVIEN gv
+where tg.magv = gv.magv 
+--and tg.madt in (select madt from DETAI dt, CHUDE cd
+--where dt.macd = cd.macd and cd.tencd = N'Ứng dụng công nghệ')
+and not exists (select * from DETAI dt2, CHUDE cd2 where
+dt2.macd = cd2.macd and cd2.tencd = N'Ứng dụng công nghệ'
+and not exists (select * from THAMGIADT tg2
+where tg2.magv = tg.magv and tg2.madt = dt2.madt))
+
+select * from THAMGIADT
+
+--//--Q66. gv tham gia tat ca de tai duoc Tran Tra Huong lam chu nhiem
+
+select distinct tg.magv, gv.hoten from THAMGIADT tg, GIAOVIEN gv
+where tg.magv = gv.magv
+and not exists (select * from DETAI dt2, GIAOVIEN gv2 
+where dt2.gvcndt = gv2.magv and gv2.hoten = N'Trần Trà Hương'
+and not exists (select * from THAMGIADT tg2
+where tg2.magv = tg.magv and tg2.madt = dt2.madt))
+
+select * from THAMGIADT
+
+--//--Q67. tendt dt all gv khoa cntt thamgia
+select distinct tg.madt, dt.tendt from THAMGIADT tg, DETAI dt
+where tg.madt = dt.madt
+and not exists (select * from GIAOVIEN gv, BOMON bm
+where gv.mabm = bm.mabm and bm.makhoa = 'CNTT'
+and not exists (select * from THAMGIADT tg2
+where tg2.madt = tg.madt and tg2.magv = gv.magv))
+
+select * from THAMGIADT
+
+--insert into THAMGIADT values ('002', '002', 5, 1.5, null)
+
+--//--Q68. gv thamgia all cv cua de tai Nghien cuu te bao goc
+select distinct tg.magv, gv.hoten from GIAOVIEN gv, THAMGIADT tg
+where tg.magv = gv.magv
+and not exists (select * from CONGVIEC cv where madt in (select madt from
+DETAI where tendt = N'Nghiên cứu tế bào gốc')
+and not exists (select * from THAMGIADT tg2
+where tg2.magv = tg.magv and tg2.madt = cv.madt and tg2.stt = cv.sott))
+
+select * from THAMGIADT
+
+--//--Q69. hoten gv lam tat ca detai co kinhphi > 100.000.000
+select distinct tg.magv, gv.hoten from THAMGIADT tg, GIAOVIEN gv
+where tg.magv = gv.magv
+and not exists (select * from DETAI dt where dt.kinhphi > 100
+and not exists (select * from THAMGIADT tg2
+where tg2.magv = tg.magv and tg2.madt = dt.madt))
+
+select madt, kinhphi from DETAI
+
+--//--Q70. Tendt duoc all gv khoa Sinh Hoc tham gia
+select tg.madt, dt.tendt from THAMGIADT tg, DETAI dt
+
+select distinct tg.madt, dt.tendt from THAMGIADT tg, DETAI dt
+where tg.madt = dt.madt
+and not exists (select * from GIAOVIEN gv, BOMON bm,
+KHOA k where gv.mabm = bm.mabm and bm.makhoa = k.makhoa
+and k.tenkhoa = N'Sinh học'
+and not exists (select * from THAMGIADT tg2
+where tg2.madt = tg.madt and tg2.magv = gv.magv))
+
+--//--Q71. magv, hoten, ngaysinh cua gv tham gia tat ca CONGVIEC
+--cua DETAI "Ung dung hoa hoc xanh"
+select distinct tg.magv, gv.hoten, cast (gv.ngaysinh as date) as 'birthday'
+from GIAOVIEN gv, THAMGIADT tg
+where tg.magv = gv.magv
+and not exists (select * from CONGVIEC cv 
+where cv.madt in (select madt from DETAI 
+where tendt = N'Ứng dụng hóa học xanh')
+and not exists (select * from THAMGIADT tg2
+where tg2.magv = tg.magv and tg2.madt = cv.madt and tg2.stt = cv.sott))
+
+--//--Q72. magv, hoten, tenbm, tenNQLCM cua gv tham gia tat ca cac de tai
+--thuoc chude "Nghien cuu phat trien".
+
+select * from GIAOVIEN
+
+select distinct tg.magv, gv.hoten, bm.tenbm, nql.hoten as 'NQL'
+from THAMGIADT tg join 
+(BOMON bm join (GIAOVIEN gv left join GIAOVIEN nql
+on gv.gvqlcm = nql.magv) on bm.mabm = gv.mabm) on tg.magv = gv.magv
+where not exists (select * from DETAI dt 
+where dt.madt in (select madt from DETAI dt, CHUDE cd
+where dt.macd = cd.macd and tencd = N'Nghiên cứu phát triển')
+and not exists (select * from THAMGIADT tg2 
+where tg2.magv = tg.magv and tg2.madt = dt.madt))
+
+--//--Q73. hoten, ngaysinh, tenkhoa, tentruongkhoa cua gv thamgia all
+--dt co gv Nguyen Hoai An / Trần Trà Hương thamgia.
+select distinct tg.magv, gv.hoten, cast(gv.ngaysinh as date) as 'ngaysinh', 
+k.tenkhoa, trgkhoa.hoten as 'truongkhoa'
+from THAMGIADT tg, GIAOVIEN gv, BOMON bm, KHOA k, GIAOVIEN trgkhoa
+where tg.magv = gv.magv and gv.mabm = bm.mabm 
+and bm.makhoa = k.makhoa 
+and k.truongkhoa = trgkhoa.magv
+and gv.hoten not like N'Trần Trà Hương'
+and not exists (select * from DETAI dt 
+where madt in (select distinct tg2.madt from THAMGIADT tg2, GIAOVIEN gv2
+where tg2.magv = gv2.magv and gv2.hoten = N'Trần Trà Hương')
+and not exists (select * from THAMGIADT tg3
+where tg3.magv = tg.magv and tg3.madt = dt.madt))
+
+select * from THAMGIADT
+
+--//--Q74. hoten gv khoa "Cong nghe thong tin" thamgia all cv cua detai
+--co truongbm cua bomon dong nhat khoa "Cong Nghe Thong Tin" lam chu nhiem.
+select distinct tg.magv, gv.hoten
+from THAMGIADT tg, GIAOVIEN gv, BOMON bm, KHOA k
+where tg.magv = gv.magv and gv.mabm = bm.mabm and bm.makhoa = k.makhoa
+and k.tenkhoa = N'Công Nghệ Thông Tin'
+
+and not exists (select * from CONGVIEC cv
+where cv.madt = (select dt1.madt from DETAI dt1
+where dt1.gvcndt = (select bm2.truongbm
+from GIAOVIEN gv2, BOMON bm2
+where gv2.mabm = bm2.mabm
+group by bm2.truongbm, gv2.mabm
+having count(*) >= all(select count(*) from GIAOVIEN gv3 group by gv3.mabm)))
+
+and not exists (select * from THAMGIADT tg3
+where tg3.magv = tg.magv and tg3.madt = cv.madt and tg3.stt = cv.sott))
+
+select * from DETAI
+select * from CONGVIEC
+select * from THAMGIADT
+
+--q75-- hoten gv va tenbm ho lam truongbm neu co
+select gv.hoten, bm.tenbm
+from GIAOVIEN gv left join BOMON bm on bm.truongbm = gv.magv
+
+--q76--ds tenbm & hoten truongbm neu co
+select bm.tenbm, trgbm.hoten as 'leader'
+from BOMON bm left join GIAOVIEN trgbm on bm.truongbm = trgbm.magv
+
+--q77--ds hoten gv & cac detai gv do la gvcndt neu co
+select gv.hoten, dt.tendt
+from GIAOVIEN gv left join DETAI dt on dt.gvcndt = gv.magv
+
+--q78--Xoa detai thuoc chude 'NCPT'
+delete from DETAI where macd = 'NCPT'
+
+--q79--Xuat infor gv (magv, hoten) va luong cua gv.
+--Muc luong duoc sap xep theo quy tac: Luong < $1800: "LOW"
+--$1800 -> $2200: "Normal", Luong > $2200: "HIGH".
+
+create FUNCTION fNhanXetLuong (@luong float)
+returns char(20)
+as
+BEGIN
+
+	declare @nhanxet char(20)
+
+	IF (@luong < 1800)
+		set @nhanxet = 'LOW'
+
+	ELSE
+	begin
+		if (@luong <= 2200)
+			set @nhanxet = 'NORMAL'
+		else
+			set @nhanxet = 'HIGH'
+	end
+	
+	return @nhanxet
+END
+
+
+SELECT MAGV, HOTEN, dbo.fNhanXetLuong(LUONG)
+FROM GIAOVIEN
+
+--q80--(magv, hoten) xep hang theo luong, cao nhat la hang 1
+
+select magv, hoten, luong, RANK() over (order by luong desc) as 'TOP'
+from GIAOVIEN
+
+--q81--xuat infor thu nhap cua gv.
+--thu nhap = luong + phucap
+--phu cap: - truongbm: 300
+--			- truongkhoa: 600
+
+--Ham tinh phu cap:
+alter function fTinhPhuCap(@magv char(5))
+returns int
+as
+begin
+	declare @phucap int = 0
+	if (@magv in (select truongbm from BOMON))
+		set @phucap = 300
+	if (@magv in (select truongkhoa from KHOA))
+		set @phucap = 600
+	if (@magv in (select truongbm from BOMON INTERSECT select truongkhoa from KHOA))
+		set @phucap = 900
+
+	return @phucap
+end
+
+--Select
+select magv, hoten, luong + dbo.fTinhPhuCap(magv)
+
+from GIAOVIEN
+
+--Đối chiếu
+select magv, hoten, 
+luong
+
+from GIAOVIEN
+
+--q82-- Xuất ra năm nghỉ hưu dự kiến (nam 60, nữ 55)
+select magv, hoten, 
+year(ngaysinh) + (case phai when 'Nam' then 60
+							when N'Nữ' then 55
+							end)
+
+from GIAOVIEN
+
+---------------------2. STORE PROCEDURE-------------------
+
+--Tong 2 so
+create proc sp_Tong123 @So1 int, @So2 int, @Tong int out
+as
+	set @tong = @So1 + @So2
+
+create proc sp_Tongabc @So1 int, @So2 int, @tong int out
+as
+	set @tong = @So1 + @So2;
+
+--drop proc sp_Tongabc
+
+declare @sum int
+exec sp_Tong123 4, 5, @sum out
+print @sum
+
+--Tong chan tu m->n
+create proc sp_tong234 @m int, @n int
+as
+	declare @tong int
+	declare @i int
+	set @tong = 0
+	set @i = @m
+	while (@i < @n)
+	begin
+		if (@i % 2 = 0)
+			set @tong = @tong + @i
+		set @i = @i + 1
+	end
+
+	print @tong
+
+exec sp_tong234 3, 7
+
+alter proc sp_asc @m int, @n int
+as
+	declare @tong int
+	declare @i int
+	set @tong = 0
+	set @i = @m
+	while (@i < @n)
+	begin
+		if (@i % 2 = 0)
+			set @tong = @tong + @i;
+		set @i = @i + 1;
+	end
+
+	print @tong
+
+exec sp_asc 4, 7
+
+drop proc sp_asc
+
+--Check su ton tai cua gv theo magv
+alter proc sp_check001 @magv char(5)
+as
+	if (exists (select * from GIAOVIEN where magv = @magv))
+		print N'Có GV mã ' + @magv + 'nhen ^^'
+	else
+		print N'Không tồn tại GV mã ' + @magv + '!'
+
+exec sp_check001 '009'
+
+--drop proc sp_check001
+
+--Xuat dsgv theo mabm
+create proc sp_dsgvnekhihi @mabm char(5)
+as
+	select * from GIAOVIEN where mabm = @mabm
+
+exec sp_dsgvnekhihi 'HTTT'
+
+--drop proc sp_dsgvnekhihi
+
+--Tinh tuoi dua theo ngay
+create FUNCTION fCountAge (@ngsinh datetime)
+returns int
+as
+	begin
+		return year(getdate()) - year(@ngsinh)
+	end
+
+alter function fca (@ns datetime)
+returns int
+as
+	begin
+		return year(getdate()) - year(@ns)
+	end
+
+print dbo.fca('1/1/2000')
+
+print dbo.fca('2000-01-01')
+
+select magv, hoten, dbo.fCountAge(ngaysinh) as 'age'
+from GIAOVIEN
+
+select magv, hoten, dbo.fca(ngaysinh) as 'Age'
+from GIAOVIEN
+
+--FUNCTION lay dsgv HTTT
+alter function fs()
+returns table
+as return(select magv from GIAOVIEN where mabm = 'httt')
+
+select * from dbo.fsss()
+
+drop function dbo.fs
+
+--a. In ra hello world:
+create proc sp_hi
+as
+	print 'Hello World!!!'
+
+exec sp_hi
+
+--b. In ra tong 2 so
+create proc sp_totalof2numbers @a int, @b int
+as
+	declare @tong int 
+	set @tong = 0
+	set @tong = @a + @b
+
+	print @tong
+
+exec sp_sacs 4, 5
+
+--c. Tinh tong 2 so dung OUT
+create proc sp_totalOUT @a int, @b int, @sum int out
+as
+	set @sum = @a + @b
+
+declare @s int
+exec sp_totalOUT 4, 5, @s out
+print @s
+
+--d. In ra tong 3 so
+create proc sp_tong3sonekk @a int, @b int, @c int, @total int out
+as
+	set @total = @a + @b;
+	exec sp_totalOUT @total, @c, @total out
+
+	print @total
+
+declare @summ int
+exec sp_tong3sonekk 4, 5, 1, @summ
+print @summ
+
+--e. Print total from m->n
+create proc sp_tongMtoN @m int, @n int, @tong int out
+as
+	declare @i int
+	set @i = @m
+	set @tong = 0
+	while (@i < @n)
+	begin
+		set @tong = @tong + @i
+
+		set @i = @i + 1
+	end
+
+	print @tong
+
+declare @susu int
+exec sp_tongMtoN 4, 10, @susu out
+
+--f. Check SNT
+alter proc sp_checkSNT @x int, @chk int out
+as
+	set @chk = 1 --Biến kiểm tra SNT
+
+	IF (@x < 2)
+	begin
+		set @chk = 0
+	end
+
+	ELSE IF (@x > 2)
+	begin
+		IF (@x % 2 = 0)
+		begin
+			set @chk = 0
+		end
+
+		ELSE
+		Begin
+			declare @i int
+			set @i = 3
+			while (@i <= (@x / 2))
+			begin
+				if (@x % @i = 0)
+				begin
+					set @chk = 0
+				end
+				set @i = @i + 2
+			end
+		End
+		
+	end
+
+	ELSE
+	begin
+		set @chk = 1
+	end
+
+
+
+declare @checkSNT int
+exec sp_checkSNT 2, @checkSNT out
+
+IF (@checkSNT = 0)
+begin
+	print N'Không phải là SNT'
+end
+
+ELSE
+begin
+	print N'Là SNT'
+end
+
+--g. In ra tong cac SNT trong doan m, n
+alter proc sp_tongSNT @m int, @n int, @tongSNT int out
+as
+	declare @i int
+	set @i = @m
+
+	set @tongSNT = 0
+
+	declare @checkSNT int
+
+	while (@i < @n)
+	begin
+		exec sp_checkSNT @i, @checkSNT out
+
+		IF (@checkSNT = 1)
+		begin
+			set @tongSNT = @tongSNT + @i
+		end
+
+		set @i = @i + 1
+	end
+
+	print @tongSNT
+
+
+declare @tongSNTnek int
+
+exec sp_tongSNT 1, 7, @tongSNTnek out
+
+--h. Tinh UCLN 2 so nguyen
+alter proc sp_FindUCLN @a int, @b int, @ucln int out
+as
+	while (@a != @b)
+	BEGIN
+	if (@a > @b)
+		begin
+			set @a = @a - @b
+		end
+	else
+		begin
+			set @b = @b - @a
+		end
+	END
+
+	set @ucln = @a
+
+
+declare @ucln int
+
+exec sp_FindUCLN 9, 18, @ucln out
+
+print @ucln
+
+--i. Tính BCNN của 2 số nguyên
+-- BCNN = so1 * so2 / UCLN(so1, so2)
+
+alter proc sp_FindBCNN @a int, @b int, @bcnn int out
+as
+	declare @temp int 
+	exec sp_FindUCLN @a, @b, @temp out
+
+	set @bcnn = (@a * @b) / @temp
+
+	print @bcnn
+	
+
+declare @bcnn int
+exec sp_FindBCNN 3, 9, @bcnn out
+
+--j-- Xuất ra toàn bộ dsgv
+create proc sp_dsgv
+as
+begin
+	select * from GIAOVIEN
+end
+
+exec sp_dsgv
+
+--k-- Tính số lượng đề tài mà 1 gv đang thực hiện
+alter proc sp_tinhSLDT @magv char(5), @sldt int out
+as
+begin
+	select count(distinct madt) from THAMGIADT where magv = @magv
+	print @sldt
+end
+
+declare @sldt int
+exec sp_tinhSLDT '001', @sldt
+
+--l-- In infor chi tiết 1 GV (sử dụng print)
+--infor cá nhân, số lượng đề tài tham gia, số lượng thân nhân
+create function fSoLuongTN (@magv char(5))
+returns int
+as
+begin
+	declare @sltn int
+	set @sltn = (select count(magv) from NGUOITHAN where magv = @magv)
+	
+	return @sltn
+end
+
+create function fSoLuongDTTG (@magv char(5))
+returns int
+as
+begin
+	declare @sldt int
+	set @sldt = (select count(magv) from THAMGIADT where magv = @magv)
+	
+	return @sldt
+end
+
+select gv.*, dbo.fSoLuongDTTG(magv) as N'Số lượng đề tài tham gia', 
+dbo.fSoLuongTN(magv) as N'Số lượng thân nhân'
+from GIAOVIEN gv
+
+--m--Kiểm tra xem 1 gv có tồn tại hay không(dựa vào magv)
+alter proc sp_checkGVTonTai @magv char(5)
+as
+begin
+	if (exists (select * from GIAOVIEN where magv = @magv))
+		print 'FOUND'
+	else
+		print 'NOT FOUND'
+end
+
+exec sp_checkGVTonTai '000'
+
+--n--kiểm tra quy định của 1 gv:
+--Chỉ được thực hiện các đề tài mà bộ môn của gv đó làm chủ nhiệm.
+
+alter proc sp_CheckQDGV(@magv char(5))
+as
+begin
+	IF (not exists (select * from GIAOVIEN where magv = @magv))
+	begin
+		print N'Không tồn tại mã giáo viên!'
+		return
+	end
+	IF (exists (select *
+from GIAOVIEN gv, THAMGIADT tg, DETAI dt
+where gv.magv = @magv and tg.magv = @magv 
+and tg.madt = dt.madt and dt.gvcndt in 
+(select gv2.magv from GIAOVIEN gv2 where gv2.mabm = gv.mabm)))
+	begin
+		print N'GV làm đúng quy định!'
+		return
+	end
+	ELSE --(not exists (select distinct *
+--from GIAOVIEN gv, THAMGIADT tg, DETAI dt
+--where tg.magv = gv.magv and tg.madt = dt.madt
+--and dt.gvcndt in 
+--(select gv2.magv from GIAOVIEN gv2 where gv2.mabm = gv.mabm)))
+	begin
+		print N'GV không làm theo đúng quy định!!!'
+		return
+	end
+end
+
+exec sp_CheckQDGV '006'
+
+
+select * from GIAOVIEN
+
+select * from THAMGIADT
+
+select * from DETAI
+
+--o--Thực hiện thêm 1 phân công cho GV
+--thực hiện 1 công việc của detai:
+--1. Kiem tra infor đầu vào hợp lệ: gv phải tồn tại,
+--công việc phải tồn tại, thời gian tham gia phải lớn hơn 0.
+--2. Check qui định ở câu n.
+
+select * from CONGVIEC
+
+select * from THAMGIADT
+
+--p--Xoa gv theo ma. Neu gv co thân nhân, có làm đề tài thì báo lỗi.
+alter proc sp_XoaGV @magv char(5)
+as
+begin
+	
+	if (not exists (select * from GIAOVIEN where magv = @magv))
+	BEGIN	
+		print N'Khong ton tai GV ma ' + @magv
+		return;
+	END
+
+	if (exists (select * from NGUOITHAN where magv = @magv)
+	or exists (select * from THAMGIADT where magv = @magv))
+	begin
+		print 'Cannot delete this TEACHER!'
+		return;
+	end
+	delete from dbo.GIAOVIEN where magv = @magv
+	print N'Deleted this teacher successfully'
+end
+
+exec sp_XoaGV '00x'
+
+select * from GIAOVIEN
+
+--insert into GIAOVIEN 
+--values('00x', 'xx', 10000, 'Nam', null, null, null, null);
+
+--q--In dsgv cua 1 bomon nao do cung:
+--sldt thamgia, so nguoithan, sogv ma gv do quan ly
+
+alter function fDemSLNT (@magv char(5))
+returns int
+as
+begin
+	declare @slnt int
+	set @slnt = (select count(magv) from NGUOITHAN where magv = @magv)
+	return @slnt
+end
+
+create function fDemSLDTThamGia (@magv char(5))
+returns int
+as
+begin
+	declare @sldt int
+	set @sldt = (select count(magv) from THAMGIADT where magv = @magv)
+	return @sldt
+end
+
+create function fDemSLNguoiQuanLy (@magv char(5))
+returns int
+as
+begin
+	declare @sl int
+	set @sl = (select count(magv) from GIAOVIEN where gvqlcm = @magv)
+	return @sl
+end
+
+--
+select magv, hoten, dbo.fDemSLNT(magv) as 'SL Nguoi Than', 
+dbo.fDemSLDTThamGia(magv) as 'SLDT Tham Gia',
+dbo.fDemSLNguoiQuanLy(magv) as 'SL NQL'
+from GIAOVIEN
+
+--r--Kiểm tra quy định của 2 gv a, b: nếu a là trưởngbm C của b
+--thì lương(a) > lương(b)	-- a, b: magv
+
+create function fShowRaLuong(@magv char(5))
+returns float
+as
+begin
+	declare @luong float
+	set @luong = (select luong from GIAOVIEN where magv = @magv)
+	return @luong
+end
+
+create function fshowwage(@magv char(5))
+returns float
+as
+begin
+	declare @luong float
+	set @luong = (Select luong from GIAOVIEN where magv = @magv)
+	return @luong
+end
+
+print dbo.fshowwage('002')
+
+create proc sp_CheckQuyDinh2GV @magv1 char(5), @magv2 char(5)
+as
+begin
+	IF (not exists (select * from GIAOVIEN where magv = @magv1)
+	or not exists (select * from GIAOVIEN where magv = @magv2))
+	begin
+		print N'Mã giáo viên truyền vào không tìm thấy!'
+		return
+	end
+	IF (exists (select * from GIAOVIEN gv, BOMON bm 
+	where gv.magv = @magv2 and gv.mabm = bm.mabm and bm.truongbm = @magv1))
+	begin
+		if (dbo.fShowRaLuong(@magv2) > dbo.fShowRaLuong(@magv1))
+		begin
+			print N'Trưởng Bộ Môn ít lương hơn Giáo Viên bình thường kìa^^'
+			return
+		end
+	end
+	print N'EVERYTHING IS OKAY'
+end
+
+exec sp_CheckQuyDinh2GV '001', '003'
+
+select * from GIAOVIEN
+
+--s--Them 1 gv: Check: ko trung ten, tuoi > 18, luong > 0.
+create proc sp_ThemGV @magv char(5), @hoten nvarchar(50),
+@luong float, @phai nchar(3), @ngaysinh datetime, @diachi nvarchar(50),
+@gvqlcm char(5), @mabm char(5)
+as
+begin
+	IF (exists (select * from GIAOVIEN where hoten = @hoten))
+	begin
+		print N'Không được trùng tên nhé!'
+		return
+	end
+	IF (year(getdate()) - year(@ngaysinh) <= 18)
+	begin
+		print N'Tuổi phải lớn lơn 18!'
+		return
+	end
+	IF (@luong <= 0)
+	begin
+		print N'Lương phải lớn hơn 0!'
+		return
+	end
+	--Hợp lệ thì insert thôi
+	insert into dbo.GIAOVIEN
+	values(@magv, @hoten, @luong, @phai, @ngaysinh, @diachi, @gvqlcm, @mabm)
+	print 'INSERT SUCCESSFULLY!'
+end
+
+exec sp_ThemGV '00z', 'kaito2', 1, 'Be', '10-10-1999', null, null, null
+
+select * from GIAOVIEN
+
+--t--Mã giáo viên được xác định tự động theo nguyên tắc:
+--Nếu đã có 001, 002, 003 thì gv mới sẽ có magv là 004.
+--Nếu đã có 001, 002, 005 thì gv mới sẽ có magv là 003.
+
+alter proc sp_TuTangMaGV @magv char(5) out
+as
+begin
+	declare @i int = 1
+	set @magv = '00' + cast(@i as varchar);
+	while (exists (select * from GIAOVIEN where magv = @magv))
+	begin
+		--Đã bị trùng nên tăng @i lên:
+		set @i = @i + 1
+		set @magv = '00' + cast(@i as varchar);
+	end
+	print @magv
+end
+
+declare @magv char(5)
+exec sp_TuTangMaGV @magv
+
+----------------------------------------------
+----------------------------------------------
+
+go
+create database QLKhachSan
+
+use QLKhachSan
+
+drop database QLKhachSan
+
+create table PHONG
+(
+	maPhong int identity,
+	tinhTrang nvarchar(10) check (tinhTrang = N'Rảnh' or tinhTrang = N'Bận'),
+	LoaiPhong char(10),
+	DonGia float
+	primary key(maPhong)
+)
+
+create table KHACH
+(
+	maKH int identity,
+	hoTen nvarchar(50),
+	diaChi nvarchar(50),
+	dienThoai char(20)
+	primary key(maKH)
+)
+
+create table DATPHONG
+(
+	maDatPhong int identity,
+	maKH int,
+	maPhong int,
+	ngayDP date,
+	ngayTra date,
+	ThanhTien float,
+	primary key(maDatPhong, maKH, maPhong),
+	foreign key (maKH) references dbo.KHACH(maKH),
+	foreign key (maPhong) references dbo.PHONG(maPhong)
+)
+
+--UPDATE table_name
+--SET column1 = value1, column2 = value2, ...
+--WHERE condition;
+
+--drop table PHONG
+--drop table DATPHONG
+--drop table KHACH
+
+insert into dbo.PHONG (tinhTrang, LoaiPhong, donGia)
+values (N'Rảnh', 'VIP', 1000)
+insert into dbo.PHONG (tinhTrang, LoaiPhong, donGia)
+values (N'Rảnh', 'NORMAL', 500)
+insert into dbo.PHONG (tinhTrang, LoaiPhong, donGia)
+values (N'Rảnh', 'NORMAL', 500)
+
+insert into dbo.KHACH(hoten, diaChi, dienThoai)
+values ('Jack', 'New York', null)
+insert into dbo.KHACH(hoten, diaChi, dienThoai)
+values ('John', 'Tokyo', null)
+insert into dbo.KHACH(hoten, diaChi, dienThoai)
+values ('Lisa', 'Seoul', null)
+
+select * from PHONG
+select * from KHACH
+select * from DATPHONG
+
+--VIẾT STORED PROCEDURE
+alter proc sp_DatPhong @makh int, @maphong int, @ngaydat date
+as
+begin
+	IF (not exists (select * from dbo.KHACH where maKH = @makh)
+	or not exists (select * from dbo.PHONG where maPhong = @maphong))
+	begin
+		print N'Mã khách hàng hoặc Mã phòng không đúng!'
+		return
+	end
+	
+	declare @tinhtrang nvarchar(10)
+	set @tinhtrang = (select tinhTrang from PHONG where maPhong = @maphong)
+	IF (@tinhtrang = N'Bận')
+	begin
+		print N'Phòng đang có người sử dụng!'
+		return
+	end
+	
+	--OK hết thì insert data:
+	insert into dbo.DATPHONG (maKH, maPhong, ngayDP, ngayTra, ThanhTien)
+	values (@makh, @maphong, @ngaydat, null, null)
+
+	--Cập nhật tình trạng của phòng:
+	update dbo.PHONG
+	set tinhTrang = N'Bận'
+	where maPhong = @maphong
+
+	--Thông báo insert thành công:
+	print 'Insert successfully'
+end
+
+--Insert thông qua proc:
+exec sp_DatPhong 100, 10, '04-15-2020'
+
+exec sp_DatPhong 2, 11, '04-15-2020'
+
+exec sp_DatPhong 2, 12, null
+
+select * from PHONG
+--update dbo.PHONG
+--set tinhTrang = N'Rảnh'
+select * from KHACH
+select * from DATPHONG
+
+--STORED PROCEDURE trả phòng:
+
+alter proc sp_TraPhong @madp int, @makh int
+as
+begin
+	IF (not exists (select * from dbo.DATPHONG where maDatPhong = @madp
+	and maKH = @makh))
+	begin
+		print N'Mã đặt phòng hoặc Mã khách hàng không đúng!'
+		return
+	end
+
+	--NẾU THỎA thì bắt đầu xử lý:
+	declare @ngayTraPhong date
+	set @ngayTraPhong = GETDATE()
+
+	------------------Tính tiền phòng:
+
+	--Mã phòng đang trả:
+	declare @maphongdangtra int
+	set @maphongdangtra = (select p.maPhong from DATPHONG dp, PHONG p 
+	where dp.maDatPhong = @madp and dp.maPhong = p.maPhong)
+
+	--Số ngày mượn
+	declare @SoNgayMuon float
+	set @SoNgayMuon = (select day(@ngayTraPhong) - day(ngayDP) from dbo.DATPHONG)
+
+	--Tính tiền: Tiền = Số ngày mượn * Đơn giá của phòng mượn
+	declare @Tien float
+	set @Tien = (select @SoNgayMuon * DonGia
+	from PHONG where maPhong = @maphongdangtra)
+
+	-------------------Cập nhật xuống csdl:
+	update DATPHONG
+	set ngayTra = @ngayTraPhong, ThanhTien = @Tien
+	where maPhong = @maphongdangtra
+
+	update PHONG
+	set tinhTrang = N'Rảnh'
+	where maPhong = @maphongdangtra
+
+	print N'Trả phòng thành công. Cảm ơn quý khách <3'
+end
+
+select * from PHONG
+select * from KHACH
+select * from DATPHONG
+
+--alter proc sp_DatPhong @makh int, @maphong int, @ngaydat date
+exec sp_DatPhong 1, 10, '04-10-2020'
+
+--alter proc sp_TraPhong @madp int, @makh int
+exec sp_TraPhong 9, 1
